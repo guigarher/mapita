@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-import json
+from google_sheets import leer_restaurantes, guardar_restaurantes
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
@@ -12,6 +12,9 @@ if "usuario" not in st.session_state or st.session_state["usuario"] is None:
 usuario = st.session_state["usuario"]
 
 st.title("🗺️ Añadir o editar restaurante")
+
+# Cargar restaurantes desde Google Sheets
+restaurantes = leer_restaurantes()
 
 # ===========================
 # 🔹 SECCIÓN 1: AÑADIR NUEVO
@@ -46,47 +49,28 @@ with col_form:
                 "tipo": tipo,
                 "lat": lat,
                 "lon": lng,
-                "votos": {
-                    usuario: puntuacion
-                },
-                "reseñas": {
-                    usuario: reseña
-                }
+                "votos": {usuario: puntuacion},
+                "reseñas": {usuario: reseña}
             }
 
-            try:
-                with open("restaurantes.json", "r", encoding="utf-8") as f:
-                    data = json.load(f)
-            except FileNotFoundError:
-                data = {"restaurantes": []}
-
-            data["restaurantes"].append(nuevo_restaurante)
-
-            with open("restaurantes.json", "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+            restaurantes.append(nuevo_restaurante)
+            guardar_restaurantes(restaurantes)
 
             st.success("✅ Restaurante guardado correctamente.")
             st.session_state["ultimo_click"] = None
     else:
         st.info("Haz clic en el mapa para seleccionar la ubicación del restaurante.")
 
-
 # =======================================
 # 🔸 SECCIÓN 2: EDITAR EXISTENTE
 # =======================================
 st.subheader("✏️ Añadir o modificar tu reseña en un restaurante existente")
 
-try:
-    with open("restaurantes.json", "r", encoding="utf-8") as f:
-        data = json.load(f)["restaurantes"]
-except FileNotFoundError:
-    data = []
-
-nombres = [r["nombre"] for r in data]
+nombres = [r["nombre"] for r in restaurantes]
 restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
 
 if restaurante_seleccionado:
-    restaurante = next((r for r in data if r["nombre"] == restaurante_seleccionado), None)
+    restaurante = next((r for r in restaurantes if r["nombre"] == restaurante_seleccionado), None)
 
     if restaurante:
         st.markdown(f"**Tipo**: {restaurante['tipo'].title()}")
@@ -102,7 +86,6 @@ if restaurante_seleccionado:
             restaurante.setdefault("votos", {})[usuario] = nueva_puntuacion
             restaurante.setdefault("reseñas", {})[usuario] = nueva_reseña
 
-            with open("restaurantes.json", "w", encoding="utf-8") as f:
-                json.dump({"restaurantes": data}, f, ensure_ascii=False, indent=4)
+            guardar_restaurantes(restaurantes)
 
             st.success("✅ Cambios guardados correctamente.")
