@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-from google_sheets import leer_restaurantes, guardar_restaurante
+from google_sheets import leer_restaurantes, guardar_restaurantes
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
@@ -10,11 +10,7 @@ if "usuario" not in st.session_state or st.session_state["usuario"] is None:
     st.stop()
 
 usuario = st.session_state["usuario"]
-
 st.title("🗺️ Añadir o editar restaurante")
-
-# Cargar restaurantes desde Google Sheets
-restaurantes = leer_restaurantes()
 
 # ===========================
 # 🔹 SECCIÓN 1: AÑADIR NUEVO
@@ -53,6 +49,7 @@ with col_form:
                 "reseñas": {usuario: reseña}
             }
 
+            restaurantes = leer_restaurantes()
             restaurantes.append(nuevo_restaurante)
             guardar_restaurantes(restaurantes)
 
@@ -64,28 +61,30 @@ with col_form:
 # =======================================
 # 🔸 SECCIÓN 2: EDITAR EXISTENTE
 # =======================================
-st.subheader("✏️ Añadir o modificar tu reseña en un restaurante existente")
+with st.expander("✏️ Añadir o modificar tu reseña en un restaurante existente", expanded=True):
+    restaurantes = leer_restaurantes()
 
-nombres = [r["nombre"] for r in restaurantes]
-restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
+    if not restaurantes:
+        st.info("Todavía no hay restaurantes en la base de datos.")
+    else:
+        nombres = [r["nombre"] for r in restaurantes]
+        restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
 
-if restaurante_seleccionado:
-    restaurante = next((r for r in restaurantes if r["nombre"] == restaurante_seleccionado), None)
+        if restaurante_seleccionado:
+            restaurante = next((r for r in restaurantes if r["nombre"] == restaurante_seleccionado), None)
 
-    if restaurante:
-        st.markdown(f"**Tipo**: {restaurante['tipo'].title()}")
-        st.markdown(f"**Ubicación**: {restaurante['lat']:.5f}, {restaurante['lon']:.5f}")
+            if restaurante:
+                st.markdown(f"**Tipo**: {restaurante['tipo'].title()}")
+                st.markdown(f"**Ubicación**: {restaurante['lat']:.5f}, {restaurante['lon']:.5f}")
 
-        puntuacion_actual = restaurante.get("votos", {}).get(usuario, 3.0)
-        reseña_actual = restaurante.get("reseñas", {}).get(usuario, "")
+                puntuacion_actual = restaurante.get("votos", {}).get(usuario, 3.0)
+                reseña_actual = restaurante.get("reseñas", {}).get(usuario, "")
 
-        nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
-        nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
+                nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
+                nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
 
-        if st.button("Guardar cambios", key="guardar_edicion"):
-            restaurante.setdefault("votos", {})[usuario] = nueva_puntuacion
-            restaurante.setdefault("reseñas", {})[usuario] = nueva_reseña
-
-            guardar_restaurantes(restaurantes)
-
-            st.success("✅ Cambios guardados correctamente.")
+                if st.button("Guardar cambios", key="guardar_edicion"):
+                    restaurante.setdefault("votos", {})[usuario] = nueva_puntuacion
+                    restaurante.setdefault("reseñas", {})[usuario] = nueva_reseña
+                    guardar_restaurantes(restaurantes)
+                    st.success("✅ Cambios guardados correctamente.")

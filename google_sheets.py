@@ -20,7 +20,7 @@ def leer_restaurantes():
     datos = hoja.get_all_records()
     return pd.DataFrame(datos)
 
-def guardar_restaurante(df):
+def guardar_restaurantes(df):
     hoja = conectar_hoja()
     hoja.clear()
     hoja.append_row(list(df.columns))
