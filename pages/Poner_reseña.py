@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 from google_sheets import leer_restaurantes, guardar_restaurantes
+import pandas as pd
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
@@ -43,21 +44,25 @@ with col_form:
         reseña = st.text_area("Tu reseña", key="nueva_reseña")
 
         if st.button("Guardar restaurante"):
-            nuevo_restaurante = {
-                "nombre": nombre,
-                "tipo": tipo,
-                "lat": lat,
-                "lon": lng,
-                col_voto: puntuacion,
-                col_reseña: reseña
-            }
+            if not nombre or not tipo:
+                st.error("Por favor, completa el nombre y el tipo del restaurante.")
+            else:
+                nuevo_restaurante = {
+                    "nombre": nombre,
+                    "tipo": tipo,
+                    "lat": lat,
+                    "lon": lng,
+                    col_voto: puntuacion,
+                    col_reseña: reseña
+                }
 
-            restaurantes = leer_restaurantes()
-            restaurantes = restaurantes.append(nuevo_restaurante, ignore_index=True)
-            guardar_restaurantes(restaurantes)
+                restaurantes = leer_restaurantes()
+                nuevo_df = pd.DataFrame([nuevo_restaurante])
+                restaurantes = pd.concat([restaurantes, nuevo_df], ignore_index=True)
 
-            st.success("✅ Restaurante guardado correctamente.")
-            st.session_state["ultimo_click"] = None
+                guardar_restaurantes(restaurantes)
+                st.success("✅ Restaurante guardado correctamente.")
+                st.session_state["ultimo_click"] = None
     else:
         st.info("Haz clic en el mapa para seleccionar la ubicación del restaurante.")
 
@@ -72,19 +77,29 @@ if restaurantes.empty:
     st.info("No hay restaurantes aún.")
     st.stop()
 
-nombres = restaurantes["nombre"].tolist()
+nombres = restaurantes["nombre"].dropna().tolist()
 restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
 
 if restaurante_seleccionado:
     r = restaurantes[restaurantes["nombre"] == restaurante_seleccionado].iloc[0]
 
-    st.markdown(f"**Tipo**: {r['tipo'].title()}")
-    st.markdown(f"**Ubicación**: {r['lat']:.5f}, {r['lon']:.5f}")
+    try:
+        lat = float(r["lat"])
+        lon = float(r["lon"])
+    except (ValueError, TypeError):
+        lat = lon = 0.0  # Valores por defecto si hay error
 
-    puntuacion_actual = r.get(col_voto, 3.0)
+    st.markdown(f"**Tipo**: {r['tipo'].title()}")
+    st.markdown(f"**Ubicación**: {lat:.5f}, {lon:.5f}")
+
+    try:
+        puntuacion_actual = float(r.get(col_voto, 3.0))
+    except (ValueError, TypeError):
+        puntuacion_actual = 3.0
+
     reseña_actual = r.get(col_reseña, "")
 
-    nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, float(puntuacion_actual), 0.25, key="editar_puntuacion")
+    nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
     nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
 
     if st.button("Guardar cambios", key="guardar_edicion"):
