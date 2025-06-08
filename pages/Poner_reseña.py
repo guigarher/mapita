@@ -64,7 +64,7 @@ with col_form:
 with st.expander("✏️ Añadir o modificar tu reseña en un restaurante existente", expanded=True):
     restaurantes = leer_restaurantes()
 
-    if not restaurantes:
+    if restaurantes.empty:
         st.info("Todavía no hay restaurantes en la base de datos.")
     else:
         nombres = [r["nombre"] for r in restaurantes]
