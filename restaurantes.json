@@ -1,0 +1,16 @@
+{
+    "restaurantes": [
+        {
+            "nombre": "All or Nothing Burger",
+            "tipo": "hamburguesas",
+            "lat": 28.484240306852417,
+            "lon": -16.3141742348671,
+            "votos": {
+                "Guillermo": 4.0
+            },
+            "reseñas": {
+                "Guillermo": "burger rica"
+            }
+        }
+    ]
+}
