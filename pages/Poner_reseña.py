@@ -61,30 +61,38 @@ with col_form:
 # =======================================
 # 🔸 SECCIÓN 2: EDITAR EXISTENTE
 # =======================================
-with st.expander("✏️ Añadir o modificar tu reseña en un restaurante existente", expanded=True):
-    restaurantes = leer_restaurantes()
+st.subheader("✏️ Añadir o modificar tu reseña en un restaurante existente")
 
-    if restaurantes.empty:
-        st.info("Todavía no hay restaurantes en la base de datos.")
-    else:
-        nombres = [r["nombre"] for r in restaurantes]
-        restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
+restaurantes = leer_restaurantes()
 
-        if restaurante_seleccionado:
-            restaurante = next((r for r in restaurantes if r["nombre"] == restaurante_seleccionado), None)
+if restaurantes.empty:
+    st.info("No hay restaurantes aún.")
+    st.stop()
 
-            if restaurante:
-                st.markdown(f"**Tipo**: {restaurante['tipo'].title()}")
-                st.markdown(f"**Ubicación**: {restaurante['lat']:.5f}, {restaurante['lon']:.5f}")
+nombres = restaurantes["nombre"].tolist()
+restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
 
-                puntuacion_actual = restaurante.get("votos", {}).get(usuario, 3.0)
-                reseña_actual = restaurante.get("reseñas", {}).get(usuario, "")
+if restaurante_seleccionado:
+    r = restaurantes[restaurantes["nombre"] == restaurante_seleccionado].iloc[0]
 
-                nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
-                nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
+    st.markdown(f"**Tipo**: {r['tipo'].title()}")
+    st.markdown(f"**Ubicación**: {r['lat']:.5f}, {r['lon']:.5f}")
 
-                if st.button("Guardar cambios", key="guardar_edicion"):
-                    restaurante.setdefault("votos", {})[usuario] = nueva_puntuacion
-                    restaurante.setdefault("reseñas", {})[usuario] = nueva_reseña
-                    guardar_restaurantes(restaurantes)
-                    st.success("✅ Cambios guardados correctamente.")
+    votos = json.loads(r["votos"]) if isinstance(r["votos"], str) else r["votos"]
+    reseñas = json.loads(r["reseñas"]) if isinstance(r["reseñas"], str) else r["reseñas"]
+
+    puntuacion_actual = votos.get(usuario, 3.0)
+    reseña_actual = reseñas.get(usuario, "")
+
+    nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
+    nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
+
+    if st.button("Guardar cambios", key="guardar_edicion"):
+        votos[usuario] = nueva_puntuacion
+        reseñas[usuario] = nueva_reseña
+
+        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, "votos"] = [json.dumps(votos, ensure_ascii=False)]
+        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, "reseñas"] = [json.dumps(reseñas, ensure_ascii=False)]
+
+        guardar_restaurantes(restaurantes)
+        st.success("✅ Cambios guardados correctamente.")
