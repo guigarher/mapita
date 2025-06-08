@@ -1,0 +1,23 @@
+# Ignorar carpetas de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos sensibles
+credentials.json
+
+# Archivos temporales de Streamlit
+.streamlit/
+
+# Entornos virtuales
+venv/
+.env/
+*.env
