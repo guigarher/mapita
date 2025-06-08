@@ -6,6 +6,7 @@ import pandas as pd
 
 SHEET_NAME = "restaurantes_data"
 
+@st.cache_resource
 def conectar_hoja():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     credentials_dict = json.loads(st.secrets["google_auth"]["credentials"])
@@ -23,4 +24,5 @@ def guardar_restaurante(df):
     hoja = conectar_hoja()
     hoja.clear()
     hoja.append_row(list(df.columns))
-    hoja.append_rows(df.values.tolist())
+    hoja.append_rows(df.fillna("").astype(str).values.tolist())
+
