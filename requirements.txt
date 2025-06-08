@@ -1,5 +1,6 @@
 streamlit
+folium
 streamlit-folium
-pandas
 gspread
 oauth2client
+pandas

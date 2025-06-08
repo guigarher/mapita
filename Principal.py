@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
-import json
 
 st.set_page_config(page_title="Guía Gastronómica", layout="wide")
 
@@ -30,10 +29,9 @@ else:
     usuario = st.session_state["usuario"]
     st.sidebar.title(f"Usuario: {usuario}")
 
-    with open("restaurantes.json", encoding="utf-8") as f:
-        data = json.load(f)["restaurantes"]
+    from google_sheets import leer_restaurantes
 
-    df = pd.DataFrame(data)
+    df = leer_restaurantes()
 
     tipos = sorted(df["tipo"].unique())
     tipo_seleccionado = st.sidebar.selectbox("Tipo de restaurante", ["Todo"] + tipos)
@@ -95,7 +93,7 @@ else:
     # Comparación completa debajo
     st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
     comparacion_data = []
-    for r in data:
+    for r in df.to_dict(orient="records"):
         comparacion_data.append({
             "Restaurante": r["nombre"],
             "Tipo": r["tipo"],
