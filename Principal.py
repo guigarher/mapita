@@ -44,27 +44,41 @@ else:
         st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
         m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
-        for _, row in df.iterrows():
-            claudia_score = row.get("votos_Claudia", "—")
-            guillermo_score = row.get("votos_Guillermo", "—")
-            tipo = str(row.get("tipo", "")).title()
-            nombre = row.get("nombre", "¿?")
-            lat = row.get("lat")
-            lon = row.get("lon")
+        # Mostrar marcadores en el mapa
+for _, r in restaurantes.iterrows():
+    try:
+        lat = float(r["lat"])
+        lon = float(r["lon"])
+        nombre = r["nombre"]
+        tipo = r["tipo"]
 
-            popup = f"""
-            <b>{nombre}</b><br>
-            Tipo: {tipo}<br>
-            Claudia ⭐: {claudia_score}<br>
-            Guillermo ⭐: {guillermo_score}
-            """
-            folium.Marker(
-                location=[lat, lon],
-                popup=popup,
-                tooltip=f"{nombre} ({tipo})"
-            ).add_to(m)
+        # Mostrar puntuaciones de ambos usuarios, si existen
+        puntuacion_claudia = r.get("votos_Claudia", "—")
+        puntuacion_guillermo = r.get("votos_Guillermo", "—")
+        reseña_claudia = r.get("reseña_Claudia", "")
+        reseña_guillermo = r.get("reseña_Guillermo", "")
 
-        st_folium(m, width=700, height=500)
+        popup_html = f"""
+        <strong>{nombre}</strong><br>
+        Tipo: {tipo}<br>
+        Claudia: ⭐ {puntuacion_claudia} <br>
+        Guillermo: ⭐ {puntuacion_guillermo} <br>
+        <hr style='margin:4px 0'>
+        <small><em>Claudia:</em> {reseña_claudia}</small><br>
+        <small><em>Guillermo:</em> {reseña_guillermo}</small>
+        """
+
+        popup = folium.Popup(popup_html, max_width=300)
+
+        folium.Marker(
+            location=[lat, lon],
+            popup=popup,
+            tooltip=f"{nombre} ({tipo})"
+        ).add_to(m)
+
+    except (ValueError, TypeError, KeyError):
+        continue  # Ignora filas con datos incompletos o corruptos
+
 
     # Top 10
     with col_info:
