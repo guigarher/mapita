@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-from google_sheets import leer_restaurantes, guardar_restaurantes
+from google_sheets import leer_restaurantes, guardar_restaurante
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
