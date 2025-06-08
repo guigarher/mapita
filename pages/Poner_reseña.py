@@ -10,6 +10,9 @@ if "usuario" not in st.session_state or st.session_state["usuario"] is None:
     st.stop()
 
 usuario = st.session_state["usuario"]
+col_voto = f"votos_{usuario}"
+col_reseña = f"reseña_{usuario}"
+
 st.title("🗺️ Añadir o editar restaurante")
 
 # ===========================
@@ -45,12 +48,12 @@ with col_form:
                 "tipo": tipo,
                 "lat": lat,
                 "lon": lng,
-                "votos": {usuario: puntuacion},
-                "reseñas": {usuario: reseña}
+                col_voto: puntuacion,
+                col_reseña: reseña
             }
 
             restaurantes = leer_restaurantes()
-            restaurantes.append(nuevo_restaurante)
+            restaurantes = restaurantes.append(nuevo_restaurante, ignore_index=True)
             guardar_restaurantes(restaurantes)
 
             st.success("✅ Restaurante guardado correctamente.")
@@ -78,21 +81,14 @@ if restaurante_seleccionado:
     st.markdown(f"**Tipo**: {r['tipo'].title()}")
     st.markdown(f"**Ubicación**: {r['lat']:.5f}, {r['lon']:.5f}")
 
-    votos = json.loads(r["votos"]) if isinstance(r["votos"], str) else r["votos"]
-    reseñas = json.loads(r["reseñas"]) if isinstance(r["reseñas"], str) else r["reseñas"]
+    puntuacion_actual = r.get(col_voto, 3.0)
+    reseña_actual = r.get(col_reseña, "")
 
-    puntuacion_actual = votos.get(usuario, 3.0)
-    reseña_actual = reseñas.get(usuario, "")
-
-    nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
+    nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, float(puntuacion_actual), 0.25, key="editar_puntuacion")
     nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
 
     if st.button("Guardar cambios", key="guardar_edicion"):
-        votos[usuario] = nueva_puntuacion
-        reseñas[usuario] = nueva_reseña
-
-        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, "votos"] = [json.dumps(votos, ensure_ascii=False)]
-        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, "reseñas"] = [json.dumps(reseñas, ensure_ascii=False)]
-
+        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_voto] = nueva_puntuacion
+        restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_reseña] = nueva_reseña
         guardar_restaurantes(restaurantes)
         st.success("✅ Cambios guardados correctamente.")
