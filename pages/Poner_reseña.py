@@ -93,7 +93,7 @@ with st.container():
         else:
             m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
-        map_click = st_folium(m, width="100%", height=400, returned_objects=[])
+        map_click = st_folium(m, width="100%", height=400)
 
         # Si clicas en el mapa, actualizas coordenadas (sin marcador ni centrado)
         if map_click.get("last_clicked"):
