@@ -3,6 +3,7 @@ import folium
 from streamlit_folium import st_folium
 import pandas as pd
 from google_sheets import leer_restaurantes
+from folium import Icon
 
 st.set_page_config(page_title="Guía Gastronómica", layout="wide")
 st.markdown("""
@@ -81,7 +82,8 @@ else:
                     folium.Marker(
                         location=[lat, lon],
                         popup=popup,
-                        tooltip=f"{nombre} ({tipo})"
+                        tooltip=f"{nombre} ({tipo})",
+                        icon=Icon(icon='glyphicon glyphicon-map-marker', prefix='glyphicon')
                     ).add_to(m)
 
                 except (ValueError, TypeError, KeyError):

@@ -4,6 +4,7 @@ from streamlit_folium import st_folium
 from google_sheets import leer_restaurantes, guardar_restaurantes
 import pandas as pd
 import requests
+from folium import Icon
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 st.markdown("""
@@ -86,14 +87,13 @@ with st.container():
             m = folium.Map(location=[lat, lng], zoom_start=16)
             folium.Marker(
                 location=[lat, lon],
-                popup=popup,
-                tooltip=f"{nombre} ({tipo})",
+                tooltip="Ubicación seleccionada",
                 icon=Icon(icon='glyphicon glyphicon-map-marker', prefix='glyphicon')
             ).add_to(m)
         else:
             m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
-        map_click = st_folium(m, width=700, height=500)
+        map_click = st_folium(m, width="100%", height=400, returned_objects=[])
 
         # Si clicas en el mapa, actualizas coordenadas (sin marcador ni centrado)
         if map_click.get("last_clicked"):
