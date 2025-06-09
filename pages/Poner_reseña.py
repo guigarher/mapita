@@ -3,9 +3,31 @@ import folium
 from streamlit_folium import st_folium
 from google_sheets import leer_restaurantes, guardar_restaurantes
 import pandas as pd
+import requests
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
+# Función para geocodificar usando la API de Google
+def geocodificar_direccion(direccion, api_key):
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {"address": direccion, "key": api_key}
+    response = requests.get(url, params=params)
+    data = response.json()
+    
+    if data["status"] == "OK":
+        location = data["results"][0]["geometry"]["location"]
+        return location["lat"], location["lng"]
+    else:
+        return None, None
+
+# ========================
+# 🔐 Obtener la API KEY
+# ========================
+API_KEY = st.secrets["google_maps_api_key"]
+
+# ========================
+# 👤 Comprobar usuario
+# ========================
 if "usuario" not in st.session_state or st.session_state["usuario"] is None:
     st.warning("Primero selecciona un usuario en la página principal.")
     st.stop()
@@ -17,17 +39,37 @@ col_reseña = f"reseña_{usuario}"
 st.title("🗺️ Añadir o editar restaurante")
 
 # ===========================
+# 🔎 Buscador por dirección
+# ===========================
+st.subheader("🔍 Buscar restaurante por nombre o dirección")
+
+direccion = st.text_input("Introduce nombre o dirección del restaurante")
+
+if direccion and st.button("Buscar ubicación"):
+    lat, lon = geocodificar_direccion(direccion, API_KEY)
+    if lat and lon:
+        st.success(f"📍 Coordenadas encontradas: {lat:.5f}, {lon:.5f}")
+        st.session_state["ultimo_click"] = {"lat": lat, "lng": lon}
+    else:
+        st.error("No se pudo encontrar esa dirección.")
+
+# ===========================
 # 🔹 SECCIÓN 1: AÑADIR NUEVO
 # ===========================
+st.subheader("➕ Añadir nuevo restaurante (clic en el mapa o con el buscador)")
 
-st.subheader("➕ Añadir nuevo restaurante (clic en el mapa)")
-
-# AGRUPAMOS ESTA SECCIÓN EN UN CONTENEDOR
 with st.container():
     col_mapa, col_form = st.columns([3, 2])
 
     with col_mapa:
         m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
+
+        if st.session_state.get("ultimo_click"):
+            folium.Marker(
+                location=[st.session_state["ultimo_click"]["lat"], st.session_state["ultimo_click"]["lng"]],
+                tooltip="Ubicación seleccionada"
+            ).add_to(m)
+
         map_click = st_folium(m, width=700, height=500)
 
         if map_click.get("last_clicked"):
@@ -54,7 +96,7 @@ with st.container():
                 lat = float(r["lat"])
                 lon = float(r["lon"])
             except (ValueError, TypeError):
-                lat = lon = 0.0  # Valores por defecto si hay error
+                lat = lon = 0.0
 
             st.markdown(f"**Tipo**: {r['tipo'].title()}")
             st.markdown(f"**Ubicación**: {lat:.5f}, {lon:.5f}")
@@ -75,8 +117,7 @@ with st.container():
                 guardar_restaurantes(restaurantes)
                 st.success("✅ Cambios guardados correctamente.")
         
-
-with col_form:
+    with col_form:
         if st.session_state.get("ultimo_click"):
             coords = st.session_state["ultimo_click"]
             lat = coords["lat"]
@@ -110,5 +151,4 @@ with col_form:
                     st.success("✅ Restaurante guardado correctamente.")
                     st.session_state["ultimo_click"] = None
         else:
-            st.info("Haz clic en el mapa para seleccionar la ubicación del restaurante.")
-
+            st.info("Haz clic en el mapa o usa el buscador para seleccionar la ubicación del restaurante.")
