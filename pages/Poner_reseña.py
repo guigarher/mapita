@@ -6,7 +6,19 @@ import pandas as pd
 import requests
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
-
+st.markdown("""
+    <style>
+    @media screen and (max-width: 768px) {
+        iframe {
+            height: 400px !important;
+            max-height: 400px !important;
+        }
+        .element-container:has(iframe) {
+            margin-bottom: -30px !important;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
 # ========================
 # 🔐 API Key de Google Maps
 # ========================
@@ -72,7 +84,12 @@ with st.container():
             lat = st.session_state["ultimo_click"]["lat"]
             lng = st.session_state["ultimo_click"]["lng"]
             m = folium.Map(location=[lat, lng], zoom_start=16)
-            folium.Marker([lat, lng], tooltip="Ubicación buscada").add_to(m)
+            folium.Marker(
+                location=[lat, lon],
+                popup=popup,
+                tooltip=f"{nombre} ({tipo})",
+                icon=Icon(icon='glyphicon glyphicon-map-marker', prefix='glyphicon')
+            ).add_to(m)
         else:
             m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
