@@ -128,13 +128,14 @@ else:
                 use_container_width=True
             )
 
-    
+    # ❌ Excluir los deseados de la comparación de reseñas
+    df_comparacion = df[df.get("deseado", False).fillna(False) == False]
     # 🔸 Comparación de reseñas (desplegable)
     titulo_tipo = f"de {tipo_seleccionado}" if tipo_seleccionado != "Todo" else ""
     with st.expander(f"📊 Comparación de puntuaciones y reseñas {titulo_tipo}"):
 
         comparacion_data = []
-        for _, row in df.iterrows():
+        for _, row in df_comparacion.iterrows():
             comparacion_data.append({
                 "Restaurante": row.get("nombre"),
                 "Tipo": row.get("tipo"),

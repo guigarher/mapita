@@ -18,7 +18,14 @@ def conectar_hoja():
 def leer_restaurantes():
     hoja = conectar_hoja()
     datos = hoja.get_all_records()
-    return pd.DataFrame(datos)
+    df = pd.DataFrame(datos)
+
+    # 🔧 Forzar tipo booleano en la columna 'deseado'
+    if "deseado" in df.columns:
+        df["deseado"] = df["deseado"].astype(str).str.lower() == "true"
+
+    return df
+
 
 def guardar_restaurantes(df):
     hoja = conectar_hoja()
