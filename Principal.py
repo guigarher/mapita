@@ -19,7 +19,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-st.sidebar.warning("✅ Cargando versión ACTUALIZADA del archivo")
 
 
 if "usuario" not in st.session_state:
