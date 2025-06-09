@@ -86,7 +86,7 @@ with st.container():
             lng = st.session_state["ultimo_click"]["lng"]
             m = folium.Map(location=[lat, lng], zoom_start=16)
             folium.Marker(
-                location=[lat, lon],
+                location=[lat, lng],
                 tooltip="Ubicación seleccionada",
                 icon=Icon(icon='glyphicon glyphicon-map-marker', prefix='glyphicon')
             ).add_to(m)
