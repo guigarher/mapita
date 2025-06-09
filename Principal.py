@@ -37,7 +37,7 @@ else:
 
     # Agrupamos mapa y top 10 en un contenedor
     with st.container():
-        col_mapa, col_info = st.columns([1, 1])
+        col_mapa, col_info = st.columns([3, 2])
 
         with col_mapa:
             st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
