@@ -36,9 +36,9 @@ else:
         df = df[df["tipo"] == tipo_seleccionado]
 
     # Agrupamos mapa y top 10 en un contenedor
-        col_mapa, col_info = st.columns([2, 1])
+    col_mapa, col_info = st.columns([2, 1])
 
-        with col_mapa:
+    with col_mapa:
             # Comparación completa 
             st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
             comparacion_data = []
@@ -91,7 +91,7 @@ else:
 
             st_folium(m, width=700, height=500)   
 
-        with col_info:
+    with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
 
             top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
