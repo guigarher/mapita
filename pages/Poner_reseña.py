@@ -109,7 +109,6 @@ with st.container():
             st.success(f"📍 Coordenadas seleccionadas: {lat:.5f}, {lng:.5f}")
 
             nombre = st.text_input("Nombre del restaurante")
-            # Leer los tipos únicos del DataFrame (si hay restaurantes guardados)
             restaurantes = leer_restaurantes()
             tipos_existentes = sorted(restaurantes["tipo"].dropna().unique().tolist()) if not restaurantes.empty else []
 
@@ -120,8 +119,14 @@ with st.container():
             else:
                 tipo = tipo_seleccionado
 
-            puntuacion = st.slider("Tu puntuación", 0.0, 5.0, 3.0, 0.25, key="nueva_puntuacion")
-            reseña = st.text_area("Tu reseña", key="nueva_reseña")
+            deseado = st.checkbox("📌 Guardar como 'deseado' (quiero ir pero aún no he ido)")
+
+            if not deseado:
+                puntuacion = st.slider("Tu puntuación", 0.0, 5.0, 3.0, 0.25, key="nueva_puntuacion")
+                reseña = st.text_area("Tu reseña", key="nueva_reseña")
+            else:
+                puntuacion = None
+                reseña = ""
 
             if st.button("Guardar restaurante"):
                 if not nombre or not tipo:
@@ -133,7 +138,8 @@ with st.container():
                         "lat": lat,
                         "lon": lng,
                         col_voto: puntuacion,
-                        col_reseña: reseña
+                        col_reseña: reseña,
+                        "deseado": deseado
                     }
 
                     restaurantes = leer_restaurantes()
@@ -183,5 +189,10 @@ else:
         if st.button("Guardar cambios", key="guardar_edicion"):
             restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_voto] = nueva_puntuacion
             restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_reseña] = nueva_reseña
+
+            # Si se ha puntuado, quitar de la lista de deseados
+            if nueva_puntuacion > 0:
+                restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, "deseado"] = False
+
             guardar_restaurantes(restaurantes)
             st.success("✅ Cambios guardados correctamente.")
