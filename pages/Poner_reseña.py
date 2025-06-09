@@ -27,12 +27,6 @@ with st.container():
     col_mapa, col_form = st.columns([2, 1])
 
     with col_mapa:
-        m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
-        map_click = st_folium(m, width=700, height=500)
-
-        if map_click.get("last_clicked"):
-            st.session_state["ultimo_click"] = map_click["last_clicked"]
-
         # =======================================
         # 🔸 SECCIÓN 2: EDITAR EXISTENTE
         # =======================================
@@ -74,6 +68,12 @@ with st.container():
                 restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_reseña] = nueva_reseña
                 guardar_restaurantes(restaurantes)
                 st.success("✅ Cambios guardados correctamente.")
+
+        m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
+        map_click = st_folium(m, width=700, height=500)
+
+        if map_click.get("last_clicked"):
+            st.session_state["ultimo_click"] = map_click["last_clicked"]
         
 
     with col_form:

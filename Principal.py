@@ -40,6 +40,22 @@ else:
         col_mapa, col_info = st.columns([1, 1])
 
         with col_mapa:
+            # Comparación completa 
+            st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
+            comparacion_data = []
+            for _, row in df.iterrows():
+                comparacion_data.append({
+                    "Restaurante": row.get("nombre"),
+                    "Tipo": row.get("tipo"),
+                    "Claudia ⭐": row.get("votos_Claudia", "—"),
+                    "Guillermo ⭐": row.get("votos_Guillermo", "—"),
+                    "Claudia 📝": row.get("reseña_Claudia", "—"),
+                    "Guillermo 📝": row.get("reseña_Guillermo", "—")
+                })
+
+            comparacion_df = pd.DataFrame(comparacion_data)
+            st.dataframe(comparacion_df, use_container_width=True) 
+
             st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
             m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
@@ -74,23 +90,7 @@ else:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-            st_folium(m, width=700, height=500)
-
-            # Comparación completa 
-            st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
-            comparacion_data = []
-            for _, row in df.iterrows():
-                comparacion_data.append({
-                    "Restaurante": row.get("nombre"),
-                    "Tipo": row.get("tipo"),
-                    "Claudia ⭐": row.get("votos_Claudia", "—"),
-                    "Guillermo ⭐": row.get("votos_Guillermo", "—"),
-                    "Claudia 📝": row.get("reseña_Claudia", "—"),
-                    "Guillermo 📝": row.get("reseña_Guillermo", "—")
-                })
-
-            comparacion_df = pd.DataFrame(comparacion_data)
-            st.dataframe(comparacion_df, use_container_width=True)    
+            st_folium(m, width=700, height=500)   
 
         with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
