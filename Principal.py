@@ -76,21 +76,21 @@ else:
 
             st_folium(m, width=700, height=500)
 
-        # Comparación completa (fuera del contenedor anterior, justo debajo)
-        st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
-        comparacion_data = []
-        for _, row in df.iterrows():
-            comparacion_data.append({
-                "Restaurante": row.get("nombre"),
-                "Tipo": row.get("tipo"),
-                "Claudia ⭐": row.get("votos_Claudia", "—"),
-                "Guillermo ⭐": row.get("votos_Guillermo", "—"),
-                "Claudia 📝": row.get("reseña_Claudia", "—"),
-                "Guillermo 📝": row.get("reseña_Guillermo", "—")
-            })
+            # Comparación completa 
+            st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
+            comparacion_data = []
+            for _, row in df.iterrows():
+                comparacion_data.append({
+                    "Restaurante": row.get("nombre"),
+                    "Tipo": row.get("tipo"),
+                    "Claudia ⭐": row.get("votos_Claudia", "—"),
+                    "Guillermo ⭐": row.get("votos_Guillermo", "—"),
+                    "Claudia 📝": row.get("reseña_Claudia", "—"),
+                    "Guillermo 📝": row.get("reseña_Guillermo", "—")
+                })
 
-        comparacion_df = pd.DataFrame(comparacion_data)
-        st.dataframe(comparacion_df, use_container_width=True)    
+            comparacion_df = pd.DataFrame(comparacion_data)
+            st.dataframe(comparacion_df, use_container_width=True)    
 
         with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
