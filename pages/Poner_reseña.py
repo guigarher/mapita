@@ -10,7 +10,12 @@ st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 # ========================
 # 🔐 API Key de Google Maps
 # ========================
+if "google_maps_api_key" not in st.secrets:
+    st.error("❌ No se encontró la clave 'google_maps_api_key' en los secrets.")
+    st.stop()
+
 API_KEY = st.secrets["google_maps_api_key"]
+
 
 # ========================
 # 🧠 Función de geocodificación
