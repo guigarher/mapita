@@ -36,8 +36,7 @@ else:
         df = df[df["tipo"] == tipo_seleccionado]
 
     # Agrupamos mapa y top 10 en un contenedor
-    with st.container():
-        col_mapa, col_info = st.columns([1, 1])
+        col_mapa, col_info = st.columns([2, 1])
 
         with col_mapa:
             # Comparación completa 

@@ -23,10 +23,9 @@ st.title("🗺️ Añadir o editar restaurante")
 st.subheader("➕ Añadir nuevo restaurante (clic en el mapa)")
 
 # AGRUPAMOS ESTA SECCIÓN EN UN CONTENEDOR
-with st.container():
-    col_mapa, col_form = st.columns([2, 1])
+col_mapa, col_form = st.columns([2, 1])
 
-    with col_mapa:
+with col_mapa:
         # =======================================
         # 🔸 SECCIÓN 2: EDITAR EXISTENTE
         # =======================================
@@ -76,7 +75,7 @@ with st.container():
             st.session_state["ultimo_click"] = map_click["last_clicked"]
         
 
-    with col_form:
+with col_form:
         if st.session_state.get("ultimo_click"):
             coords = st.session_state["ultimo_click"]
             lat = coords["lat"]
