@@ -35,70 +35,71 @@ else:
     if tipo_seleccionado != "Todo":
         df = df[df["tipo"] == tipo_seleccionado]
 
-    # Mapa
-    col_mapa, col_info = st.columns([1, 1])
-    with col_mapa:
-        st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
-        m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
+    # Agrupamos mapa y top 10 en un contenedor
+    with st.container():
+        col_mapa, col_info = st.columns([1, 1])
 
-        for _, r in df.iterrows():
-            try:
-                lat = float(r["lat"])
-                lon = float(r["lon"])
-                nombre = r["nombre"]
-                tipo = r["tipo"]
+        with col_mapa:
+            st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
+            m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
-                puntuacion_claudia = r.get("votos_Claudia", "—")
-                puntuacion_guillermo = r.get("votos_Guillermo", "—")
-                reseña_claudia = r.get("reseña_Claudia", "")
-                reseña_guillermo = r.get("reseña_Guillermo", "")
+            for _, r in df.iterrows():
+                try:
+                    lat = float(r["lat"])
+                    lon = float(r["lon"])
+                    nombre = r["nombre"]
+                    tipo = r["tipo"]
 
-                popup_html = f"""
-                <strong>{nombre}</strong><br>
-                Tipo: {tipo}<br>
-                Claudia: ⭐ {puntuacion_claudia} <br>
-                Guillermo: ⭐ {puntuacion_guillermo} <br>
-                <hr style='margin:4px 0'>
-                <small><em>Claudia:</em> {reseña_claudia}</small><br>
-                <small><em>Guillermo:</em> {reseña_guillermo}</small>
-                """
-                popup = folium.Popup(popup_html, max_width=300)
-                folium.Marker(
-                    location=[lat, lon],
-                    popup=popup,
-                    tooltip=f"{nombre} ({tipo})"
-                ).add_to(m)
+                    puntuacion_claudia = r.get("votos_Claudia", "—")
+                    puntuacion_guillermo = r.get("votos_Guillermo", "—")
+                    reseña_claudia = r.get("reseña_Claudia", "")
+                    reseña_guillermo = r.get("reseña_Guillermo", "")
 
-            except (ValueError, TypeError, KeyError):
-                continue
+                    popup_html = f"""
+                    <strong>{nombre}</strong><br>
+                    Tipo: {tipo}<br>
+                    Claudia: ⭐ {puntuacion_claudia} <br>
+                    Guillermo: ⭐ {puntuacion_guillermo} <br>
+                    <hr style='margin:4px 0'>
+                    <small><em>Claudia:</em> {reseña_claudia}</small><br>
+                    <small><em>Guillermo:</em> {reseña_guillermo}</small>
+                    """
+                    popup = folium.Popup(popup_html, max_width=300)
+                    folium.Marker(
+                        location=[lat, lon],
+                        popup=popup,
+                        tooltip=f"{nombre} ({tipo})"
+                    ).add_to(m)
 
-        st_folium(m, width=700, height=500)
+                except (ValueError, TypeError, KeyError):
+                    continue
 
-    # Top 10
-    with col_info:
-        st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
+            st_folium(m, width=700, height=500)
 
-        top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
-        top_guillermo = df[pd.to_numeric(df["votos_Guillermo"], errors="coerce") > 0].copy()
+        with col_info:
+            st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
 
-        top_claudia["votos_Claudia"] = pd.to_numeric(top_claudia["votos_Claudia"], errors="coerce")
-        top_guillermo["votos_Guillermo"] = pd.to_numeric(top_guillermo["votos_Guillermo"], errors="coerce")
+            top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
+            top_guillermo = df[pd.to_numeric(df["votos_Guillermo"], errors="coerce") > 0].copy()
 
-        top_claudia = top_claudia.sort_values(by="votos_Claudia", ascending=False).head(10)
-        top_guillermo = top_guillermo.sort_values(by="votos_Guillermo", ascending=False).head(10)
+            top_claudia["votos_Claudia"] = pd.to_numeric(top_claudia["votos_Claudia"], errors="coerce")
+            top_guillermo["votos_Guillermo"] = pd.to_numeric(top_guillermo["votos_Guillermo"], errors="coerce")
 
-        top_data = []
-        for i in range(10):
-            fila = {
-                "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
-                "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
-            }
-            top_data.append(fila)
+            top_claudia = top_claudia.sort_values(by="votos_Claudia", ascending=False).head(10)
+            top_guillermo = top_guillermo.sort_values(by="votos_Guillermo", ascending=False).head(10)
 
-        top_df = pd.DataFrame(top_data)
-        st.dataframe(top_df, use_container_width=True)
+            top_data = []
+            for i in range(10):
+                fila = {
+                    "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
+                    "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
+                }
+                top_data.append(fila)
 
-    # Comparación completa
+            top_df = pd.DataFrame(top_data)
+            st.dataframe(top_df, use_container_width=True)
+
+    # Comparación completa (fuera del contenedor anterior, justo debajo)
     st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
     comparacion_data = []
     for _, row in df.iterrows():

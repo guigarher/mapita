@@ -19,52 +19,55 @@ st.title("🗺️ Añadir o editar restaurante")
 # ===========================
 # 🔹 SECCIÓN 1: AÑADIR NUEVO
 # ===========================
+
 st.subheader("➕ Añadir nuevo restaurante (clic en el mapa)")
 
-col_mapa, col_form = st.columns([2, 1])
+# AGRUPAMOS ESTA SECCIÓN EN UN CONTENEDOR
+with st.container():
+    col_mapa, col_form = st.columns([2, 1])
 
-with col_mapa:
-    m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
-    map_click = st_folium(m, width=700, height=500)
+    with col_mapa:
+        m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
+        map_click = st_folium(m, width=700, height=500)
 
-    if map_click.get("last_clicked"):
-        st.session_state["ultimo_click"] = map_click["last_clicked"]
+        if map_click.get("last_clicked"):
+            st.session_state["ultimo_click"] = map_click["last_clicked"]
 
-with col_form:
-    if st.session_state.get("ultimo_click"):
-        coords = st.session_state["ultimo_click"]
-        lat = coords["lat"]
-        lng = coords["lng"]
+    with col_form:
+        if st.session_state.get("ultimo_click"):
+            coords = st.session_state["ultimo_click"]
+            lat = coords["lat"]
+            lng = coords["lng"]
 
-        st.success(f"📍 Coordenadas seleccionadas: {lat:.5f}, {lng:.5f}")
+            st.success(f"📍 Coordenadas seleccionadas: {lat:.5f}, {lng:.5f}")
 
-        nombre = st.text_input("Nombre del restaurante")
-        tipo = st.text_input("Tipo de restaurante")
-        puntuacion = st.slider("Tu puntuación", 0.0, 5.0, 3.0, 0.25, key="nueva_puntuacion")
-        reseña = st.text_area("Tu reseña", key="nueva_reseña")
+            nombre = st.text_input("Nombre del restaurante")
+            tipo = st.text_input("Tipo de restaurante")
+            puntuacion = st.slider("Tu puntuación", 0.0, 5.0, 3.0, 0.25, key="nueva_puntuacion")
+            reseña = st.text_area("Tu reseña", key="nueva_reseña")
 
-        if st.button("Guardar restaurante"):
-            if not nombre or not tipo:
-                st.error("Por favor, completa el nombre y el tipo del restaurante.")
-            else:
-                nuevo_restaurante = {
-                    "nombre": nombre,
-                    "tipo": tipo,
-                    "lat": lat,
-                    "lon": lng,
-                    col_voto: puntuacion,
-                    col_reseña: reseña
-                }
+            if st.button("Guardar restaurante"):
+                if not nombre or not tipo:
+                    st.error("Por favor, completa el nombre y el tipo del restaurante.")
+                else:
+                    nuevo_restaurante = {
+                        "nombre": nombre,
+                        "tipo": tipo,
+                        "lat": lat,
+                        "lon": lng,
+                        col_voto: puntuacion,
+                        col_reseña: reseña
+                    }
 
-                restaurantes = leer_restaurantes()
-                nuevo_df = pd.DataFrame([nuevo_restaurante])
-                restaurantes = pd.concat([restaurantes, nuevo_df], ignore_index=True)
+                    restaurantes = leer_restaurantes()
+                    nuevo_df = pd.DataFrame([nuevo_restaurante])
+                    restaurantes = pd.concat([restaurantes, nuevo_df], ignore_index=True)
 
-                guardar_restaurantes(restaurantes)
-                st.success("✅ Restaurante guardado correctamente.")
-                st.session_state["ultimo_click"] = None
-    else:
-        st.info("Haz clic en el mapa para seleccionar la ubicación del restaurante.")
+                    guardar_restaurantes(restaurantes)
+                    st.success("✅ Restaurante guardado correctamente.")
+                    st.session_state["ultimo_click"] = None
+        else:
+            st.info("Haz clic en el mapa para seleccionar la ubicación del restaurante.")
 
 # =======================================
 # 🔸 SECCIÓN 2: EDITAR EXISTENTE
