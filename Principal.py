@@ -74,9 +74,8 @@ else:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-            st_folium(m, width=700, height=500)
-            # 👇 Corregir salto visual
-            st.markdown("<div style='margin-top:-40px'></div>", unsafe_allow_html=True)
+            # ⛔ Eliminar el div con margen negativo
+            st_folium(m, width="100%", height=500)
 
         with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
