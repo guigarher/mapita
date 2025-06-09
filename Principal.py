@@ -5,6 +5,19 @@ import pandas as pd
 from google_sheets import leer_restaurantes
 
 st.set_page_config(page_title="Guía Gastronómica", layout="wide")
+st.markdown("""
+    <style>
+    @media screen and (max-width: 768px) {
+        iframe {
+            height: 400px !important;
+            max-height: 400px !important;
+        }
+        .element-container:has(iframe) {
+            margin-bottom: -30px !important;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 if "usuario" not in st.session_state:
     st.session_state["usuario"] = None
@@ -74,7 +87,7 @@ else:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-            st_folium(m, width="100%", height=500)
+            st_folium(m, width="100%", height=400, returned_objects=[])
 
         with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
