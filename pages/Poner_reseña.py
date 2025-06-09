@@ -92,7 +92,17 @@ with st.container():
             st.success(f"📍 Coordenadas seleccionadas: {lat:.5f}, {lng:.5f}")
 
             nombre = st.text_input("Nombre del restaurante")
-            tipo = st.text_input("Tipo de restaurante")
+            # Leer los tipos únicos del DataFrame (si hay restaurantes guardados)
+            restaurantes = leer_restaurantes()
+            tipos_existentes = sorted(restaurantes["tipo"].dropna().unique().tolist()) if not restaurantes.empty else []
+
+            tipo_seleccionado = st.selectbox("Tipo de restaurante", tipos_existentes + ["Otro (especificar)"])
+
+            if tipo_seleccionado == "Otro (especificar)":
+                tipo = st.text_input("Especifica el nuevo tipo de restaurante")
+            else:
+                tipo = tipo_seleccionado
+
             puntuacion = st.slider("Tu puntuación", 0.0, 5.0, 3.0, 0.25, key="nueva_puntuacion")
             reseña = st.text_area("Tu reseña", key="nueva_reseña")
 
