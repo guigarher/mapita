@@ -74,7 +74,6 @@ else:
                 except (ValueError, TypeError, KeyError):
                     continue
 
-            # ⛔ Eliminar el div con margen negativo
             st_folium(m, width="100%", height=500)
 
         with col_info:
