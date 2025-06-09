@@ -7,23 +7,24 @@ import requests
 
 st.set_page_config(page_title="Añadir nuevo restaurante", layout="wide")
 
-# Función para geocodificar usando la API de Google
+# ========================
+# 🔐 API Key de Google Maps
+# ========================
+API_KEY = st.secrets["google_maps_api_key"]
+
+# ========================
+# 🧠 Función de geocodificación
+# ========================
 def geocodificar_direccion(direccion, api_key):
     url = "https://maps.googleapis.com/maps/api/geocode/json"
     params = {"address": direccion, "key": api_key}
     response = requests.get(url, params=params)
     data = response.json()
-    
     if data["status"] == "OK":
         location = data["results"][0]["geometry"]["location"]
         return location["lat"], location["lng"]
     else:
         return None, None
-
-# ========================
-# 🔐 Obtener la API KEY
-# ========================
-API_KEY = st.secrets["google_maps_api_key"]
 
 # ========================
 # 👤 Comprobar usuario
@@ -38,25 +39,25 @@ col_reseña = f"reseña_{usuario}"
 
 st.title("🗺️ Añadir o editar restaurante")
 
-# ===========================
-# 🔎 Buscador por dirección
-# ===========================
-st.subheader("🔍 Buscar restaurante por nombre o dirección")
+# ========================
+# 🔍 Sidebar: Buscar restaurante
+# ========================
+st.sidebar.subheader("🔍 Buscar restaurante")
 
-direccion = st.text_input("Introduce nombre o dirección del restaurante")
+direccion = st.sidebar.text_input("Introduce nombre o dirección")
 
-if direccion and st.button("Buscar ubicación"):
+if st.sidebar.button("Buscar"):
     lat, lon = geocodificar_direccion(direccion, API_KEY)
     if lat and lon:
-        st.success(f"📍 Coordenadas encontradas: {lat:.5f}, {lon:.5f}")
         st.session_state["ultimo_click"] = {"lat": lat, "lng": lon}
+        st.sidebar.success(f"📍 Coordenadas: {lat:.5f}, {lon:.5f}")
     else:
-        st.error("No se pudo encontrar esa dirección.")
+        st.sidebar.error("Dirección no encontrada")
 
-# ===========================
-# 🔹 SECCIÓN 1: AÑADIR NUEVO
-# ===========================
-st.subheader("➕ Añadir nuevo restaurante (clic en el mapa o con el buscador)")
+# ========================
+# 🧭 Layout principal
+# ========================
+st.subheader("➕ Añadir nuevo restaurante")
 
 with st.container():
     col_mapa, col_form = st.columns([3, 2])
@@ -64,59 +65,54 @@ with st.container():
     with col_mapa:
         m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
 
+        # Mostrar marcador si hay coordenadas seleccionadas
         if st.session_state.get("ultimo_click"):
-            folium.Marker(
-                location=[st.session_state["ultimo_click"]["lat"], st.session_state["ultimo_click"]["lng"]],
-                tooltip="Ubicación seleccionada"
-            ).add_to(m)
+            lat = st.session_state["ultimo_click"]["lat"]
+            lng = st.session_state["ultimo_click"]["lng"]
+            folium.Marker([lat, lng], tooltip="Ubicación seleccionada").add_to(m)
 
         map_click = st_folium(m, width=700, height=500)
 
         if map_click.get("last_clicked"):
             st.session_state["ultimo_click"] = map_click["last_clicked"]
 
-        # =======================================
-        # 🔸 SECCIÓN 2: EDITAR EXISTENTE
-        # =======================================
-        st.subheader("✏️ Añadir o modificar tu reseña en un restaurante existente")
+        # =============================
+        # ✏️ Editar restaurante existente
+        # =============================
+        st.subheader("✏️ Editar restaurante existente")
 
         restaurantes = leer_restaurantes()
 
         if restaurantes.empty:
             st.info("No hay restaurantes aún.")
-            st.stop()
+        else:
+            nombres = restaurantes["nombre"].dropna().tolist()
+            restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
 
-        nombres = restaurantes["nombre"].dropna().tolist()
-        restaurante_seleccionado = st.selectbox("Selecciona un restaurante existente", nombres)
+            if restaurante_seleccionado:
+                r = restaurantes[restaurantes["nombre"] == restaurante_seleccionado].iloc[0]
 
-        if restaurante_seleccionado:
-            r = restaurantes[restaurantes["nombre"] == restaurante_seleccionado].iloc[0]
+                try:
+                    lat = float(r["lat"])
+                    lon = float(r["lon"])
+                except:
+                    lat = lon = 0.0
 
-            try:
-                lat = float(r["lat"])
-                lon = float(r["lon"])
-            except (ValueError, TypeError):
-                lat = lon = 0.0
+                st.markdown(f"**Tipo**: {r['tipo'].title()}")
+                st.markdown(f"**Ubicación**: {lat:.5f}, {lon:.5f}")
 
-            st.markdown(f"**Tipo**: {r['tipo'].title()}")
-            st.markdown(f"**Ubicación**: {lat:.5f}, {lon:.5f}")
+                puntuacion_actual = float(r.get(col_voto, 3.0) or 3.0)
+                reseña_actual = r.get(col_reseña, "")
 
-            try:
-                puntuacion_actual = float(r.get(col_voto, 3.0))
-            except (ValueError, TypeError):
-                puntuacion_actual = 3.0
+                nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
+                nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
 
-            reseña_actual = r.get(col_reseña, "")
+                if st.button("Guardar cambios", key="guardar_edicion"):
+                    restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_voto] = nueva_puntuacion
+                    restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_reseña] = nueva_reseña
+                    guardar_restaurantes(restaurantes)
+                    st.success("✅ Cambios guardados correctamente.")
 
-            nueva_puntuacion = st.slider("Tu puntuación", 0.0, 5.0, puntuacion_actual, 0.25, key="editar_puntuacion")
-            nueva_reseña = st.text_area("Tu reseña", value=reseña_actual, key="editar_reseña")
-
-            if st.button("Guardar cambios", key="guardar_edicion"):
-                restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_voto] = nueva_puntuacion
-                restaurantes.loc[restaurantes["nombre"] == restaurante_seleccionado, col_reseña] = nueva_reseña
-                guardar_restaurantes(restaurantes)
-                st.success("✅ Cambios guardados correctamente.")
-        
     with col_form:
         if st.session_state.get("ultimo_click"):
             coords = st.session_state["ultimo_click"]
@@ -151,4 +147,4 @@ with st.container():
                     st.success("✅ Restaurante guardado correctamente.")
                     st.session_state["ultimo_click"] = None
         else:
-            st.info("Haz clic en el mapa o usa el buscador para seleccionar la ubicación del restaurante.")
+            st.info("Haz clic en el mapa o busca un restaurante para seleccionarlo.")
