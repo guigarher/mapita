@@ -24,7 +24,7 @@ st.subheader("➕ Añadir nuevo restaurante (clic en el mapa)")
 
 # AGRUPAMOS ESTA SECCIÓN EN UN CONTENEDOR
 with st.container():
-    col_mapa, col_form = st.columns([2, 1])
+    col_mapa, col_form = st.columns([3, 2])
 
     with col_mapa:
         m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
