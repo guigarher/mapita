@@ -35,7 +35,7 @@ else:
     if tipo_seleccionado != "Todo":
         df = df[df["tipo"] == tipo_seleccionado]
 
-    # Agrupamos mapa y top 10 en un contenedor
+    # 🔹 Mapa + Top 10 en columnas
     with st.container():
         col_mapa, col_info = st.columns([3, 2])
 
@@ -75,24 +75,10 @@ else:
                     continue
 
             st_folium(m, width=700, height=500)
+            # 👇 Corregir salto visual
+            st.markdown("<div style='margin-top:-40px'></div>", unsafe_allow_html=True)
 
-            # Comparación completa 
-            st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
-            comparacion_data = []
-            for _, row in df.iterrows():
-                comparacion_data.append({
-                    "Restaurante": row.get("nombre"),
-                    "Tipo": row.get("tipo"),
-                    "Claudia ⭐": row.get("votos_Claudia", "—"),
-                    "Guillermo ⭐": row.get("votos_Guillermo", "—"),
-                    "Claudia 📝": row.get("reseña_Claudia", "—"),
-                    "Guillermo 📝": row.get("reseña_Guillermo", "—")
-                })
-
-            comparacion_df = pd.DataFrame(comparacion_data)
-            st.dataframe(comparacion_df, use_container_width=True)    
-
-    with col_info:
+        with col_info:
             st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
 
             top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
@@ -115,4 +101,19 @@ else:
             top_df = pd.DataFrame(top_data)
             st.dataframe(top_df, use_container_width=True)
 
-    
+    # 🔸 Comparación de reseñas (fuera de columnas)
+    st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
+
+    comparacion_data = []
+    for _, row in df.iterrows():
+        comparacion_data.append({
+            "Restaurante": row.get("nombre"),
+            "Tipo": row.get("tipo"),
+            "Claudia ⭐": row.get("votos_Claudia", "—"),
+            "Guillermo ⭐": row.get("votos_Guillermo", "—"),
+            "Claudia 📝": row.get("reseña_Claudia", "—"),
+            "Guillermo 📝": row.get("reseña_Guillermo", "—")
+        })
+
+    comparacion_df = pd.DataFrame(comparacion_data)
+    st.dataframe(comparacion_df, use_container_width=True)
