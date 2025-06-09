@@ -9,7 +9,6 @@ st.set_page_config(page_title="Guía Gastronómica", layout="wide")
 if "usuario" not in st.session_state:
     st.session_state["usuario"] = None
 
-# Selección de usuario
 if st.session_state["usuario"] is None:
     st.title("🍽️ Nuestro Letterboxd de Restaurantes")
 
@@ -35,74 +34,84 @@ else:
     if tipo_seleccionado != "Todo":
         df = df[df["tipo"] == tipo_seleccionado]
 
-    # 🔹 Mapa + Top 10 en columnas
-    with st.container():
+    # ===============================
+    # 🔹 Adaptar diseño al tamaño
+    # ===============================
+    ancho_pantalla = st.get_option("client.viewportWidth") or 1000
+    es_movil = ancho_pantalla < 768  # umbral móvil típico
+
+    st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
+
+    def mostrar_mapa():
+        m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
+
+        for _, r in df.iterrows():
+            try:
+                lat = float(r["lat"])
+                lon = float(r["lon"])
+                nombre = r["nombre"]
+                tipo = r["tipo"]
+                puntuacion_claudia = r.get("votos_Claudia", "—")
+                puntuacion_guillermo = r.get("votos_Guillermo", "—")
+                reseña_claudia = r.get("reseña_Claudia", "")
+                reseña_guillermo = r.get("reseña_Guillermo", "")
+
+                popup_html = f"""
+                <strong>{nombre}</strong><br>
+                Tipo: {tipo}<br>
+                Claudia: ⭐ {puntuacion_claudia} <br>
+                Guillermo: ⭐ {puntuacion_guillermo} <br>
+                <hr style='margin:4px 0'>
+                <small><em>Claudia:</em> {reseña_claudia}</small><br>
+                <small><em>Guillermo:</em> {reseña_guillermo}</small>
+                """
+                popup = folium.Popup(popup_html, max_width=300)
+                folium.Marker(
+                    location=[lat, lon],
+                    popup=popup,
+                    tooltip=f"{nombre} ({tipo})"
+                ).add_to(m)
+            except:
+                continue
+
+        st_folium(m, width="100%", height=500)
+
+    def mostrar_top10():
+        st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
+
+        top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
+        top_guillermo = df[pd.to_numeric(df["votos_Guillermo"], errors="coerce") > 0].copy()
+
+        top_claudia["votos_Claudia"] = pd.to_numeric(top_claudia["votos_Claudia"], errors="coerce")
+        top_guillermo["votos_Guillermo"] = pd.to_numeric(top_guillermo["votos_Guillermo"], errors="coerce")
+
+        top_claudia = top_claudia.sort_values(by="votos_Claudia", ascending=False).head(10)
+        top_guillermo = top_guillermo.sort_values(by="votos_Guillermo", ascending=False).head(10)
+
+        top_data = []
+        for i in range(10):
+            fila = {
+                "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
+                "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
+            }
+            top_data.append(fila)
+
+        top_df = pd.DataFrame(top_data)
+        st.dataframe(top_df, use_container_width=True)
+
+    # ✅ Mostrar mapa y top 10
+    if es_movil:
+        mostrar_mapa()
+        mostrar_top10()
+    else:
         col_mapa, col_info = st.columns([3, 2])
-
         with col_mapa:
-            st.markdown(f"## Mapa mostrando: {tipo_seleccionado}")
-            m = folium.Map(location=[28.4636, -16.2518], zoom_start=11)
-
-            for _, r in df.iterrows():
-                try:
-                    lat = float(r["lat"])
-                    lon = float(r["lon"])
-                    nombre = r["nombre"]
-                    tipo = r["tipo"]
-
-                    puntuacion_claudia = r.get("votos_Claudia", "—")
-                    puntuacion_guillermo = r.get("votos_Guillermo", "—")
-                    reseña_claudia = r.get("reseña_Claudia", "")
-                    reseña_guillermo = r.get("reseña_Guillermo", "")
-
-                    popup_html = f"""
-                    <strong>{nombre}</strong><br>
-                    Tipo: {tipo}<br>
-                    Claudia: ⭐ {puntuacion_claudia} <br>
-                    Guillermo: ⭐ {puntuacion_guillermo} <br>
-                    <hr style='margin:4px 0'>
-                    <small><em>Claudia:</em> {reseña_claudia}</small><br>
-                    <small><em>Guillermo:</em> {reseña_guillermo}</small>
-                    """
-                    popup = folium.Popup(popup_html, max_width=300)
-                    folium.Marker(
-                        location=[lat, lon],
-                        popup=popup,
-                        tooltip=f"{nombre} ({tipo})"
-                    ).add_to(m)
-
-                except (ValueError, TypeError, KeyError):
-                    continue
-
-            # ⛔ Eliminar el div con margen negativo
-            st_folium(m, width="100%", height=500)
-
+            mostrar_mapa()
         with col_info:
-            st.markdown(f"## 🔝 Nuestro Top 10 de {tipo_seleccionado} 🔝")
+            mostrar_top10()
 
-            top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
-            top_guillermo = df[pd.to_numeric(df["votos_Guillermo"], errors="coerce") > 0].copy()
-
-            top_claudia["votos_Claudia"] = pd.to_numeric(top_claudia["votos_Claudia"], errors="coerce")
-            top_guillermo["votos_Guillermo"] = pd.to_numeric(top_guillermo["votos_Guillermo"], errors="coerce")
-
-            top_claudia = top_claudia.sort_values(by="votos_Claudia", ascending=False).head(10)
-            top_guillermo = top_guillermo.sort_values(by="votos_Guillermo", ascending=False).head(10)
-
-            top_data = []
-            for i in range(10):
-                fila = {
-                    "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
-                    "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
-                }
-                top_data.append(fila)
-
-            top_df = pd.DataFrame(top_data)
-            st.dataframe(top_df, use_container_width=True)
-
-    # 🔸 Comparación de reseñas (fuera de columnas)
+    # 🔸 Comparación de reseñas
     st.markdown(f"## 📊 Comparación de puntuaciones y reseñas de {tipo_seleccionado}")
-
     comparacion_data = []
     for _, row in df.iterrows():
         comparacion_data.append({
