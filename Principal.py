@@ -124,7 +124,9 @@ else:
         st_folium(m, width="100%", height=400)
 
     with col2:
-        st.markdown("### 🔝 Nuestro Top 10")
+        titulo_tipo_top = tipo_seleccionado if tipo_seleccionado != "Todo" else "todos los tipos"
+        st.markdown(f"### 🔝 Nuestro Top 10 de {titulo_tipo_top} 🔝")
+
 
         top_claudia = df[pd.to_numeric(df["votos_Claudia"], errors="coerce") > 0].copy()
         top_guillermo = df[pd.to_numeric(df["votos_Guillermo"], errors="coerce") > 0].copy()
@@ -138,17 +140,10 @@ else:
         top_data = []
         for i in range(10):
             fila = {
-                "Claudia (⭐)": (
-                    f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["tipo"]}) - ⭐ {top_claudia.iloc[i]["votos_Claudia"]}'
-                    if i < len(top_claudia) else ""
-                ),
-                "Guillermo (⭐)": (
-                    f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["tipo"]}) - ⭐ {top_guillermo.iloc[i]["votos_Guillermo"]}'
-                    if i < len(top_guillermo) else ""
-                )
+                "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
+                "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
             }
             top_data.append(fila)
-
 
         top_df = pd.DataFrame(top_data)
         st.dataframe(top_df, use_container_width=True)
