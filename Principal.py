@@ -116,6 +116,8 @@ else:
 
             top_df = pd.DataFrame(top_data)
             st.dataframe(top_df, use_container_width=True)
+    # 🔧 CORRECCIÓN DEL SALTO DEBAJO DEL MAPA
+    st.markdown("<div style='margin-top:-40px'></div>", unsafe_allow_html=True)
     # 🔸 Restaurantes deseados (nuevo)
     with st.expander("📍 Restaurantes que queremos visitar"):
         deseados = df[df.get("deseado", False).fillna(False) == True]
