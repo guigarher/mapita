@@ -7,7 +7,7 @@ from folium import Icon
 
 st.set_page_config(page_title="Guía Gastronómica", layout="wide")
 
-# CSS para móviles (opcional, no afecta el salto)
+# CSS móvil opcional
 st.markdown("""
     <style>
     @media screen and (max-width: 768px) {
@@ -50,37 +50,35 @@ else:
         df = df[df["tipo"] == tipo_seleccionado]
 
     # ============================
-    # 📍 Restaurantes deseados
+    # 📍 Restaurantes deseados (desplegable)
     # ============================
-    st.markdown("## 📍 Restaurantes que queremos visitar")
-
-    deseados = df[df.get("deseado", False).fillna(False) == True]
-    if deseados.empty:
-        st.info("No hay restaurantes marcados como deseados todavía.")
-    else:
-        st.dataframe(deseados[["nombre", "tipo", "lat", "lon"]], use_container_width=True)
+    with st.expander("📍 Restaurantes que queremos visitar"):
+        deseados = df[df.get("deseado", False).fillna(False) == True]
+        if deseados.empty:
+            st.info("No hay restaurantes marcados como deseados todavía.")
+        else:
+            st.dataframe(deseados[["nombre", "tipo", "lat", "lon"]], use_container_width=True)
 
     # ============================
-    # 📊 Comparación de puntuaciones y reseñas
+    # 📊 Comparación de puntuaciones y reseñas (desplegable)
     # ============================
     titulo_tipo = f"de {tipo_seleccionado}" if tipo_seleccionado != "Todo" else ""
-    st.markdown(f"## 📊 Comparación de puntuaciones y reseñas {titulo_tipo}")
+    with st.expander(f"📊 Comparación de puntuaciones y reseñas {titulo_tipo}"):
+        df_comparacion = df[df.get("deseado", False).fillna(False) == False]
 
-    df_comparacion = df[df.get("deseado", False).fillna(False) == False]
+        comparacion_data = []
+        for _, row in df_comparacion.iterrows():
+            comparacion_data.append({
+                "Restaurante": row.get("nombre"),
+                "Tipo": row.get("tipo"),
+                "Claudia ⭐": row.get("votos_Claudia", "—"),
+                "Guillermo ⭐": row.get("votos_Guillermo", "—"),
+                "Claudia 📝": row.get("reseña_Claudia", "—"),
+                "Guillermo 📝": row.get("reseña_Guillermo", "—")
+            })
 
-    comparacion_data = []
-    for _, row in df_comparacion.iterrows():
-        comparacion_data.append({
-            "Restaurante": row.get("nombre"),
-            "Tipo": row.get("tipo"),
-            "Claudia ⭐": row.get("votos_Claudia", "—"),
-            "Guillermo ⭐": row.get("votos_Guillermo", "—"),
-            "Claudia 📝": row.get("reseña_Claudia", "—"),
-            "Guillermo 📝": row.get("reseña_Guillermo", "—")
-        })
-
-    comparacion_df = pd.DataFrame(comparacion_data)
-    st.dataframe(comparacion_df, use_container_width=True)
+        comparacion_df = pd.DataFrame(comparacion_data)
+        st.dataframe(comparacion_df, use_container_width=True)
 
     # ============================
     # 🗺️ Mapa y 🔝 Top 10
@@ -140,10 +138,17 @@ else:
         top_data = []
         for i in range(10):
             fila = {
-                "Claudia (⭐)": f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["votos_Claudia"]})' if i < len(top_claudia) else "",
-                "Guillermo (⭐)": f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["votos_Guillermo"]})' if i < len(top_guillermo) else ""
+                "Claudia (⭐)": (
+                    f'{top_claudia.iloc[i]["nombre"]} ({top_claudia.iloc[i]["tipo"]}) - ⭐ {top_claudia.iloc[i]["votos_Claudia"]}'
+                    if i < len(top_claudia) else ""
+                ),
+                "Guillermo (⭐)": (
+                    f'{top_guillermo.iloc[i]["nombre"]} ({top_guillermo.iloc[i]["tipo"]}) - ⭐ {top_guillermo.iloc[i]["votos_Guillermo"]}'
+                    if i < len(top_guillermo) else ""
+                )
             }
             top_data.append(fila)
+
 
         top_df = pd.DataFrame(top_data)
         st.dataframe(top_df, use_container_width=True)
