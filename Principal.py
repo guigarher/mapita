@@ -92,6 +92,19 @@ else:
                     continue
 
             st_folium(m, width="100%", height=400, returned_objects=[])
+            # Después de mostrar el mapa con st_folium
+            # Corrección visual del salto debajo del mapa
+            st.markdown(
+                """<style>
+                .element-container:has(iframe) {
+                    margin-bottom: 0px !important;
+                }
+                iframe {
+                    display: block;
+                    margin-bottom: 0px !important;
+                }
+                </style>""", unsafe_allow_html=True
+            )
 
         with col_info:
             titulo_tipo_top = tipo_seleccionado if tipo_seleccionado != "Todo" else "todos los tipos"
@@ -116,8 +129,6 @@ else:
 
             top_df = pd.DataFrame(top_data)
             st.dataframe(top_df, use_container_width=True)
-    # 🔧 CORRECCIÓN DEL SALTO DEBAJO DEL MAPA
-    st.markdown("<div style='margin-top:-40px'></div>", unsafe_allow_html=True)
     # 🔸 Restaurantes deseados (nuevo)
     with st.expander("📍 Restaurantes que queremos visitar"):
         deseados = df[df.get("deseado", False).fillna(False) == True]
